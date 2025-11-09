@@ -205,6 +205,48 @@ for r in results:
         print(f"Right Scleral Spur: {right_spur}")
 ```
 
+### 步骤5: 像素距离评估 (重要!)
+
+评估预测关键点与真实标注之间的像素距离:
+
+```bash
+# 计算像素距离统计
+python evaluate_pixel_distance.py
+
+# 可视化预测误差
+python visualize_prediction_errors.py
+```
+
+**评估指标**:
+- **MPD (Mean Pixel Distance)**: 平均像素距离
+- **STD (Standard Deviation)**: 标准差
+- **Median Distance**: 中位数距离
+- **PCK@Xpx**: X像素范围内正确关键点的百分比
+  - PCK@5px: 临床高精度要求
+  - PCK@10px: 临床一般精度要求
+  - PCK@20px: 临床可接受精度
+
+**医学应用标准**:
+| 等级 | MPD | PCK@10px | PCK@20px | 临床适用性 |
+|------|-----|----------|----------|-----------|
+| 优秀 | <5px | >95% | >98% | 完全可用于临床诊断 |
+| 良好 | <10px | >90% | >95% | 可用于临床辅助诊断 |
+| 可用 | <20px | >80% | >90% | 可用于研究和初筛 |
+
+**输出示例**:
+```
+整体:
+  样本数量: 143
+  平均距离 (MPD): 8.45 ± 3.21 像素
+  中位数距离: 7.82 像素
+  最小距离: 1.23 像素
+  最大距离: 24.56 像素
+  PCK@5px:  45.5%
+  PCK@10px: 82.5%
+  PCK@20px: 95.8%
+  PCK@50px: 99.3%
+```
+
 ## 高级配置
 
 ### 调整训练参数
@@ -287,11 +329,13 @@ d:\code\AS-OCT\oct\yolo\
 │   ├── PACG_Cataract/
 │   ├── ASOCT_YOLO/         # 转换后的YOLO格式
 │   └── asoct-pose.yaml     # 数据集配置
-├── convert_asoct_to_yolo_pose.py  # 数据转换脚本
-├── train_asoct_pose.py            # 训练脚本
-├── validate_asoct_pose.py         # 验证脚本
-├── predict_asoct_pose.py          # 预测脚本
-└── ASOCT_POSE_README.md           # 本文档
+├── convert_asoct_to_yolo_pose.py     # 数据转换脚本
+├── train_asoct_pose.py               # 训练脚本
+├── validate_asoct_pose.py            # 验证脚本
+├── predict_asoct_pose.py             # 预测脚本
+├── evaluate_pixel_distance.py        # 像素距离评估 ⭐
+├── visualize_prediction_errors.py    # 误差可视化 ⭐
+└── ASOCT_POSE_README.md              # 本文档
 ```
 
 ## 性能基准

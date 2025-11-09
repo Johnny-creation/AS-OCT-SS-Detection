@@ -25,7 +25,7 @@ def main():
     # 可选模型: yolo11n-pose.pt, yolo11s-pose.pt, yolo11m-pose.pt, yolo11l-pose.pt, yolo11x-pose.pt
     # n(nano) < s(small) < m(medium) < l(large) < x(xlarge)
     # 推荐: 开始用n或s快速验证，效果好再用m或l
-    model_name = 'yolo11s-pose.pt'  # 使用small模型，平衡速度和精度
+    model_name = 'yolo11l-pose.pt'  # 使用large模型，平衡速度和精度
     print(f"\n加载模型: {model_name}")
 
     model = YOLO(model_name)
@@ -42,7 +42,7 @@ def main():
         'device': device,                       # GPU设备
         'workers': 8,                           # 数据加载线程数
         'project': 'runs/pose',                 # 项目保存路径
-        'name': 'asoct_yolo11s',                # 实验名称
+        'name': 'asoct_yolo11l',                # 实验名称
         'exist_ok': False,                      # 是否覆盖已存在的实验
         'pretrained': True,                     # 使用预训练权重
         'optimizer': 'auto',                    # 优化器 ('SGD', 'Adam', 'AdamW', 'auto')
@@ -53,9 +53,9 @@ def main():
         'warmup_epochs': 3.0,                   # 预热轮数
         'warmup_momentum': 0.8,                 # 预热初始动量
         'warmup_bias_lr': 0.1,                  # 预热偏置学习率
-        'box': 7.5,                             # 边界框损失权重
-        'cls': 0.5,                             # 分类损失权重
-        'pose': 12.0,                           # 关键点损失权重 (重要!)
+        'box': 0,                               # 边界框损失权重
+        'cls': 1,                               # 分类损失权重
+        'pose': 15.0,                           # 关键点损失权重 (重要!)
         'kobj': 1.0,                            # 关键点目标损失权重
         'label_smoothing': 0.0,                 # 标签平滑
         'save': True,                           # 保存检查点
