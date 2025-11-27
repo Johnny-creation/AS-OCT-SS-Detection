@@ -1,6 +1,6 @@
 """
 将LabelMe格式的AS-OCT标注数据转换为YOLOv11 Pose格式
-支持4个类别合并训练: Cataract, Normal, PACG, PACG_Cataract
+支持4个类别合并训练: Cataract, Normal, PACG, PACG_Cataract.
 
 每个样本检测2个关键点:
 - left_scleral_spur (左侧巩膜突)
@@ -10,14 +10,14 @@
 """
 
 import json
-import os
 import shutil
 from pathlib import Path
-from sklearn.model_selection import train_test_split
+
 import numpy as np
+from sklearn.model_selection import train_test_split
 
 # 配置
-CATEGORIES = ['Cataract', 'Normal', 'PACG', 'PACG_Cataract']
+CATEGORIES = ["Cataract", "Normal", "PACG", "PACG_Cataract"]
 SOURCE_BASE = "datasets"
 OUTPUT_DIR = "datasets/ASOCT_YOLO"
 TRAIN_RATIO = 0.8  # 80% 训练集, 20% 验证集
@@ -26,29 +26,23 @@ TRAIN_RATIO = 0.8  # 80% 训练集, 20% 验证集
 CLASSES = ["asoct"]  # 只有一个类别
 
 # 关键点名称映射
-KEYPOINT_LABELS = [
-    "left_scleral_spur",
-    "right_scleral_spur"
-]
+KEYPOINT_LABELS = ["left_scleral_spur", "right_scleral_spur"]
 
 
 def extract_keypoints_from_json(json_data, img_width, img_height):
-    """
-    从JSON中提取关键点
-    返回: [x1, y1, v1, x2, y2, v2]
-    v=2表示可见, v=0表示未标注
+    """从JSON中提取关键点 返回: [x1, y1, v1, x2, y2, v2] v=2表示可见, v=0表示未标注.
     """
     keypoints = []
     kp_dict = {}
 
-    for shape in json_data['shapes']:
-        label = shape['label']
-        shape_type = shape['shape_type']
+    for shape in json_data["shapes"]:
+        label = shape["label"]
+        shape_type = shape["shape_type"]
 
         # 提取关键点
-        if shape_type == 'point':
+        if shape_type == "point":
             if label in KEYPOINT_LABELS:
-                point = shape['points'][0]
+                point = shape["points"][0]
                 kp_dict[label] = point
 
     # 按照预定义顺序组织关键点
@@ -69,15 +63,13 @@ def extract_keypoints_from_json(json_data, img_width, img_height):
 
 
 def get_bbox_from_polygons(json_data, img_width, img_height):
-    """
-    从多边形标注中计算包围框
-    返回: [x_center, y_center, width, height] (归一化)
+    """从多边形标注中计算包围框 返回: [x_center, y_center, width, height] (归一化).
     """
     all_points = []
 
-    for shape in json_data['shapes']:
-        if shape['shape_type'] == 'polygon':
-            for point in shape['points']:
+    for shape in json_data["shapes"]:
+        if shape["shape_type"] == "polygon":
+            for point in shape["points"]:
                 all_points.append(point)
 
     if not all_points:
@@ -106,16 +98,15 @@ def get_bbox_from_polygons(json_data, img_width, img_height):
 
 
 def convert_labelme_to_yolo(json_path, img_width, img_height):
+    """将单个LabelMe JSON转换为YOLO格式 格式: <class> <x_center> <y_center> <width> <height> <kp1_x> <kp1_y> <kp1_v> <kp2_x>
+    <kp2_y> <kp2_v>.
     """
-    将单个LabelMe JSON转换为YOLO格式
-    格式: <class> <x_center> <y_center> <width> <height> <kp1_x> <kp1_y> <kp1_v> <kp2_x> <kp2_y> <kp2_v>
-    """
-    with open(json_path, 'r', encoding='utf-8') as f:
+    with open(json_path, encoding="utf-8") as f:
         json_data = json.load(f)
 
     # 获取图像尺寸
-    img_h = json_data.get('imageHeight', img_height)
-    img_w = json_data.get('imageWidth', img_width)
+    img_h = json_data.get("imageHeight", img_height)
+    img_w = json_data.get("imageWidth", img_width)
 
     # 获取边界框
     bbox = get_bbox_from_polygons(json_data, img_w, img_h)
@@ -127,34 +118,32 @@ def convert_labelme_to_yolo(json_path, img_width, img_height):
     yolo_line = [0] + bbox + keypoints  # class_id=0 (所有类别统一为asoct)
 
     # 格式化为字符串
-    yolo_str = ' '.join([f'{x:.6f}' if isinstance(x, float) else str(x) for x in yolo_line])
+    yolo_str = " ".join([f"{x:.6f}" if isinstance(x, float) else str(x) for x in yolo_line])
 
     return yolo_str
 
 
 def collect_all_files():
-    """
-    收集所有类别的标注文件
-    返回: [(json_path, img_path, category), ...]
+    """收集所有类别的标注文件 返回: [(json_path, img_path, category), ...].
     """
     all_files = []
 
     for category in CATEGORIES:
-        label_dir = Path(SOURCE_BASE) / category / 'Annotated Images'
-        image_dir = Path(SOURCE_BASE) / category / 'Original Images'
+        label_dir = Path(SOURCE_BASE) / category / "Annotated Images"
+        image_dir = Path(SOURCE_BASE) / category / "Original Images"
 
         if not label_dir.exists():
             print(f"  警告: 目录不存在 - {label_dir}")
             continue
 
-        json_files = list(label_dir.glob('*.json'))
+        json_files = list(label_dir.glob("*.json"))
 
         for json_file in json_files:
             # 获取对应的图片文件
-            with open(json_file, 'r', encoding='utf-8') as f:
+            with open(json_file, encoding="utf-8") as f:
                 json_data = json.load(f)
 
-            img_name = json_data.get('imagePath', '')
+            img_name = json_data.get("imagePath", "")
             if not img_name:
                 continue
 
@@ -175,9 +164,9 @@ def main():
 
     # 创建输出目录
     output_path = Path(OUTPUT_DIR)
-    for split in ['train', 'val']:
-        (output_path / 'images' / split).mkdir(parents=True, exist_ok=True)
-        (output_path / 'labels' / split).mkdir(parents=True, exist_ok=True)
+    for split in ["train", "val"]:
+        (output_path / "images" / split).mkdir(parents=True, exist_ok=True)
+        (output_path / "labels" / split).mkdir(parents=True, exist_ok=True)
 
     # 收集所有文件
     print("\n收集数据文件...")
@@ -199,16 +188,11 @@ def main():
     print("-" * 70)
 
     # 划分训练集和验证集
-    train_files, val_files = train_test_split(
-        all_files,
-        train_size=TRAIN_RATIO,
-        random_state=42,
-        shuffle=True
-    )
+    train_files, val_files = train_test_split(all_files, train_size=TRAIN_RATIO, random_state=42, shuffle=True)
 
-    print(f"\n数据划分:")
-    print(f"  训练集: {len(train_files)} 张 ({TRAIN_RATIO*100:.0f}%)")
-    print(f"  验证集: {len(val_files)} 张 ({(1-TRAIN_RATIO)*100:.0f}%)")
+    print("\n数据划分:")
+    print(f"  训练集: {len(train_files)} 张 ({TRAIN_RATIO * 100:.0f}%)")
+    print(f"  验证集: {len(val_files)} 张 ({(1 - TRAIN_RATIO) * 100:.0f}%)")
 
     # 处理数据
     def process_split(files, split_name):
@@ -219,29 +203,29 @@ def main():
         for json_file, img_path, category in files:
             try:
                 # 读取JSON
-                with open(json_file, 'r', encoding='utf-8') as f:
+                with open(json_file, encoding="utf-8") as f:
                     json_data = json.load(f)
 
-                img_name = json_data['imagePath']
+                img_name = json_data["imagePath"]
 
                 # 为避免不同类别的同名文件冲突,在文件名前加类别前缀
                 prefix = category.lower()
                 new_img_name = f"{prefix}_{img_name}"
-                label_name = new_img_name.rsplit('.', 1)[0] + '.txt'
+                label_name = new_img_name.rsplit(".", 1)[0] + ".txt"
 
                 # 转换为YOLO格式
-                img_h = json_data.get('imageHeight', 1868)
-                img_w = json_data.get('imageWidth', 2135)
+                img_h = json_data.get("imageHeight", 1868)
+                img_w = json_data.get("imageWidth", 2135)
                 yolo_line = convert_labelme_to_yolo(json_file, img_w, img_h)
 
                 # 保存图片
-                output_img_path = output_path / 'images' / split_name / new_img_name
+                output_img_path = output_path / "images" / split_name / new_img_name
                 shutil.copy2(img_path, output_img_path)
 
                 # 保存标注
-                output_label_path = output_path / 'labels' / split_name / label_name
-                with open(output_label_path, 'w') as f:
-                    f.write(yolo_line + '\n')
+                output_label_path = output_path / "labels" / split_name / label_name
+                with open(output_label_path, "w") as f:
+                    f.write(yolo_line + "\n")
 
                 success_count += 1
 
@@ -249,15 +233,15 @@ def main():
                     print(f"  已处理: {success_count}/{len(files)}")
 
             except Exception as e:
-                print(f"  错误: {json_file.name} - {str(e)}")
+                print(f"  错误: {json_file.name} - {e!s}")
                 error_count += 1
 
         print(f"  完成: 成功 {success_count}, 失败 {error_count}")
         return success_count, error_count
 
     # 处理训练集和验证集
-    train_success, train_error = process_split(train_files, 'train')
-    val_success, val_error = process_split(val_files, 'val')
+    train_success, train_error = process_split(train_files, "train")
+    val_success, val_error = process_split(val_files, "val")
 
     # 打印总结
     print("\n" + "=" * 70)
@@ -271,12 +255,12 @@ def main():
     print(f"  训练集: {train_success} 张")
     print(f"  验证集: {val_success} 张")
 
-    print(f"\n数据集信息:")
-    print(f"  类别数: 1 (asoct - 合并所有类别)")
+    print("\n数据集信息:")
+    print("  类别数: 1 (asoct - 合并所有类别)")
     print(f"  关键点数: {len(KEYPOINT_LABELS)}")
     print(f"  关键点: {', '.join(KEYPOINT_LABELS)}")
 
-    print(f"\n原始类别分布:")
+    print("\n原始类别分布:")
     for category, count in category_counts.items():
         percentage = (count / len(all_files)) * 100
         print(f"  {category:20s}: {count:4d} 张 ({percentage:.1f}%)")
@@ -287,5 +271,5 @@ def main():
     print("3. 开始训练: python train_pose.py")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
