@@ -25,7 +25,7 @@ def main():
     # 可选模型: yolo11n-pose.pt, yolo11s-pose.pt, yolo11m-pose.pt, yolo11l-pose.pt, yolo11x-pose.pt
     # n(nano) < s(small) < m(medium) < l(large) < x(xlarge)
     # 推荐: 开始用n或s快速验证，效果好再用m或l
-    model_name = 'yolo11l-pose.pt'  # 使用large模型，平衡速度和精度
+    model_name = 'yolo11x-pose.pt'  # 使用large模型，平衡速度和精度
     print(f"\n加载模型: {model_name}")
 
     model = YOLO(model_name)
@@ -42,7 +42,7 @@ def main():
         'device': device,                       # GPU设备
         'workers': 8,                           # 数据加载线程数
         'project': 'runs/pose',                 # 项目保存路径
-        'name': 'asoct_yolo11l',                # 实验名称
+        'name': 'asoct_yolo11x',                # 实验名称
         'exist_ok': False,                      # 是否覆盖已存在的实验
         'pretrained': True,                     # 使用预训练权重
         'optimizer': 'auto',                    # 优化器 ('SGD', 'Adam', 'AdamW', 'auto')

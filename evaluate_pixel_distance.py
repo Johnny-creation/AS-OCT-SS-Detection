@@ -325,7 +325,7 @@ def plot_distance_distribution(stats, keypoint_names):
 
 def main():
     # 配置
-    model_path = 'runs/pose/asoct_yolo11s/weights/best.pt'
+    model_path = 'runs/pose/asoct_yolo11x/weights/best.pt'
     val_images_dir = 'datasets/ASOCT_YOLO/images/val'
     val_labels_dir = 'datasets/ASOCT_YOLO/labels/val'
     conf_threshold = 0.25  # 置信度阈值

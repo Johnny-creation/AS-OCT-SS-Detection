@@ -12,7 +12,7 @@ def main():
     print("=" * 70)
 
     # 模型路径 (修改为你训练好的模型路径)
-    model_path = 'runs/pose/asoct_yolo11s/weights/best.pt'
+    model_path = 'runs/pose/asoct_yolo11x/weights/best.pt'
 
     print(f"\n加载模型: {model_path}")
     try:
