@@ -146,6 +146,34 @@ runs/
 wandb/
 .DS_Store
 
+# AS-OCT Project Specific -----------------------------------------------------------------------------------------------
+# 原始LabelMe标注数据（保留源文件）
+# datasets/Cataract/
+# datasets/Normal/
+# datasets/PACG/
+# datasets/PACG_Cataract/
+
+# YOLO转换后的数据（由脚本生成，不提交）
+datasets/ASOCT_YOLO/
+
+# 旧的单类别转换（不再使用）
+datasets/Cataract_YOLO/
+convert_labelme_to_yolo_pose.py
+datasets/cataract-pose.yaml
+CATARACT_POSE_README.md
+
+# 旧的训练脚本（不再使用）
+train_pose.py
+validate_pose.py
+predict_pose.py
+
+# 训练输出
+runs/
+
+# 临时文件
+*.tmp
+*.bak
+
 # Neural Network weights -----------------------------------------------------------------------------------------------
 weights/
 *.weights
