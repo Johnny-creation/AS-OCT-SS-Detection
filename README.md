@@ -28,6 +28,7 @@ YOLOv11 Pose 模型用于自动检测AS-OCT图像中左右巩膜突的位置。
 ### 2. 标注格式
 
 LabelMe JSON 文件需包含：
+
 - **关键点**: `left_scleral_spur`, `right_scleral_spur` (必须)
 - **辅助区域**: `lens`, `nucleus`, `iris`, `anterior_chamber` (用于边界框)
 
@@ -36,6 +37,7 @@ LabelMe JSON 文件需包含：
 **自动下载**: 首次训练时自动下载预训练权重到项目根目录
 
 **手动下载** (可选):
+
 ```bash
 # 下载到项目根目录
 wget https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x-pose.pt
@@ -43,6 +45,7 @@ wget https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x-pose
 ```
 
 权重文件位置：
+
 ```
 ./
 ├── yolo11n-pose.pt   # 自动下载到项目根目录
@@ -73,6 +76,7 @@ python convert_asoct_to_yolo_pose.py
 ```
 
 **输出位置**: `datasets/ASOCT_YOLO/`
+
 ```
 datasets/ASOCT_YOLO/
 ├── images/
@@ -88,7 +92,7 @@ datasets/ASOCT_YOLO/
 修改 `train_asoct_pose.py` 选择模型：
 
 ```python
-model_name = 'yolo11x-pose.pt'  # 可选: n/s/m/l/x
+model_name = "yolo11x-pose.pt"  # 可选: n/s/m/l/x
 ```
 
 开始训练：
@@ -98,6 +102,7 @@ python train_asoct_pose.py
 ```
 
 **训练输出**: `runs/pose/asoct_yolo11x/`
+
 ```
 runs/pose/asoct_yolo11x/
 ├── weights/
@@ -122,6 +127,7 @@ python visualize_prediction_errors.py
 ```
 
 **评估输出**:
+
 - `runs/pose/evaluation_results.png` - 像素距离分布图表
 - `runs/pose/visualize_errors/` - 误差可视化图片（绿色圆圈=真实，蓝色叉=预测）
 
@@ -144,23 +150,23 @@ python predict_asoct_pose.py
 
 ## 模型选择
 
-| 模型 | 参数 | 精度 | 速度 |
-|------|------|------|------|
-| yolo11n-pose | 2.9M | ★★ | ⚡⚡⚡ |
-| yolo11s-pose | 9.9M | ★★★ | ⚡⚡ |
-| yolo11m-pose | 21M | ★★★★ | ⚡ |
-| yolo11l-pose | 26M | ★★★★ | ⚡ |
-| yolo11x-pose | 59M | ★★★★★ | ⚡ |
+| 模型         | 参数 | 精度  | 速度   |
+| ------------ | ---- | ----- | ------ |
+| yolo11n-pose | 2.9M | ★★    | ⚡⚡⚡ |
+| yolo11s-pose | 9.9M | ★★★   | ⚡⚡   |
+| yolo11m-pose | 21M  | ★★★★  | ⚡     |
+| yolo11l-pose | 26M  | ★★★★  | ⚡     |
+| yolo11x-pose | 59M  | ★★★★★ | ⚡     |
 
 ## 评估指标
 
 ### 医学关键指标
 
-| 等级 | MPD | PCK@10px | 临床适用性 |
-|------|-----|----------|-----------|
-| 优秀 | <5px | >95% | 临床诊断 |
-| 良好 | <10px | >90% | 辅助诊断 |
-| 可用 | <20px | >80% | 研究初筛 |
+| 等级 | MPD   | PCK@10px | 临床适用性 |
+| ---- | ----- | -------- | ---------- |
+| 优秀 | <5px  | >95%     | 临床诊断   |
+| 良好 | <10px | >90%     | 辅助诊断   |
+| 可用 | <20px | >80%     | 研究初筛   |
 
 - **MPD**: 平均像素距离
 - **PCK@10px**: 10像素内准确率
@@ -175,14 +181,14 @@ python predict_asoct_pose.py
 from ultralytics import YOLO
 
 # 加载模型
-model = YOLO('runs/pose/asoct_yolo11x/weights/best.pt')
+model = YOLO("runs/pose/asoct_yolo11x/weights/best.pt")
 
 # 预测
-results = model.predict('image.jpg', conf=0.25)
+results = model.predict("image.jpg", conf=0.25)
 
 # 获取关键点
 keypoints = results[0].keypoints.xy[0]  # [2, 2]
-left_spur = keypoints[0]   # [x, y]
+left_spur = keypoints[0]  # [x, y]
 right_spur = keypoints[1]  # [x, y]
 ```
 
@@ -230,7 +236,6 @@ right_spur = keypoints[1]  # [x, y]
 ├── evaluate_pixel_distance.py        # 像素距离评估
 └── visualize_prediction_errors.py    # 误差可视化
 ```
-
 
 ## 命令行使用
 
