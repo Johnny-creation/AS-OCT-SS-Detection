@@ -1,6 +1,6 @@
 """
 AS-OCT巩膜突关键点检测评估脚本
-计算预测关键点与真实标注之间的像素距离
+计算预测关键点与真实标注之间的像素距离.
 
 评估指标:
 1. 平均像素距离 (Mean Pixel Distance, MPD)
@@ -9,25 +9,23 @@ AS-OCT巩膜突关键点检测评估脚本
 4. PCK@Xpx (Percentage of Correct Keypoints at X pixels)
 """
 
-import json
-import numpy as np
 from pathlib import Path
-from ultralytics import YOLO
-import torch
+
 import cv2
-from collections import defaultdict
 import matplotlib.pyplot as plt
+import numpy as np
+import torch
+
+from ultralytics import YOLO
 
 
 def load_ground_truth_from_txt(label_path, img_width, img_height):
-    """
-    从YOLO格式的txt文件加载真实关键点
-    返回: [(x1, y1), (x2, y2)] 像素坐标
+    """从YOLO格式的txt文件加载真实关键点 返回: [(x1, y1), (x2, y2)] 像素坐标.
     """
     if not label_path.exists():
         return None
 
-    with open(label_path, 'r') as f:
+    with open(label_path) as f:
         line = f.readline().strip()
 
     if not line:
@@ -65,11 +63,7 @@ def load_ground_truth_from_txt(label_path, img_width, img_height):
 
 
 def calculate_pixel_distance(pred_kp, gt_kp):
-    """
-    计算两个关键点之间的欧氏距离（像素）
-    pred_kp: (x, y) 预测坐标
-    gt_kp: (x, y) 真实坐标
-    返回: 距离（像素）
+    """计算两个关键点之间的欧氏距离（像素） pred_kp: (x, y) 预测坐标 gt_kp: (x, y) 真实坐标 返回: 距离（像素）.
     """
     if pred_kp is None or gt_kp is None:
         return None
@@ -77,14 +71,12 @@ def calculate_pixel_distance(pred_kp, gt_kp):
     pred_x, pred_y = pred_kp
     gt_x, gt_y = gt_kp
 
-    distance = np.sqrt((pred_x - gt_x)**2 + (pred_y - gt_y)**2)
+    distance = np.sqrt((pred_x - gt_x) ** 2 + (pred_y - gt_y) ** 2)
     return distance
 
 
 def evaluate_model(model_path, val_images_dir, val_labels_dir, conf_threshold=0.25):
-    """
-    评估模型在验证集上的关键点定位精度
-    """
+    """评估模型在验证集上的关键点定位精度."""
     print("=" * 80)
     print("AS-OCT 巩膜突关键点定位精度评估")
     print("=" * 80)
@@ -93,14 +85,14 @@ def evaluate_model(model_path, val_images_dir, val_labels_dir, conf_threshold=0.
     print(f"\n加载模型: {model_path}")
     model = YOLO(model_path)
 
-    device = 0 if torch.cuda.is_available() else 'cpu'
+    device = 0 if torch.cuda.is_available() else "cpu"
     print(f"使用设备: {'GPU - ' + torch.cuda.get_device_name(0) if device == 0 else 'CPU'}")
 
     # 获取所有验证图片
     val_images_path = Path(val_images_dir)
     val_labels_path = Path(val_labels_dir)
 
-    image_files = list(val_images_path.glob('*.jpg')) + list(val_images_path.glob('*.png'))
+    image_files = list(val_images_path.glob("*.jpg")) + list(val_images_path.glob("*.png"))
 
     if len(image_files) == 0:
         print(f"错误: 未找到验证图片在 {val_images_dir}")
@@ -111,13 +103,9 @@ def evaluate_model(model_path, val_images_dir, val_labels_dir, conf_threshold=0.
     print("\n开始评估...\n")
 
     # 统计数据
-    stats = {
-        'left_scleral_spur': [],
-        'right_scleral_spur': [],
-        'all': []
-    }
+    stats = {"left_scleral_spur": [], "right_scleral_spur": [], "all": []}
 
-    keypoint_names = ['left_scleral_spur', 'right_scleral_spur']
+    keypoint_names = ["left_scleral_spur", "right_scleral_spur"]
 
     no_detection_count = 0
     processed_count = 0
@@ -125,7 +113,7 @@ def evaluate_model(model_path, val_images_dir, val_labels_dir, conf_threshold=0.
     # 逐张图片评估
     for img_path in image_files:
         # 获取对应的标注文件
-        label_name = img_path.stem + '.txt'
+        label_name = img_path.stem + ".txt"
         label_path = val_labels_path / label_name
 
         if not label_path.exists():
@@ -142,12 +130,7 @@ def evaluate_model(model_path, val_images_dir, val_labels_dir, conf_threshold=0.
             continue
 
         # 模型预测
-        results = model.predict(
-            source=str(img_path),
-            conf=conf_threshold,
-            device=device,
-            verbose=False
-        )
+        results = model.predict(source=str(img_path), conf=conf_threshold, device=device, verbose=False)
 
         # 提取预测的关键点
         if len(results) == 0 or len(results[0].boxes) == 0:
@@ -176,7 +159,7 @@ def evaluate_model(model_path, val_images_dir, val_labels_dir, conf_threshold=0.
 
                 if distance is not None:
                     stats[kp_name].append(distance)
-                    stats['all'].append(distance)
+                    stats["all"].append(distance)
 
         processed_count += 1
 
@@ -188,7 +171,7 @@ def evaluate_model(model_path, val_images_dir, val_labels_dir, conf_threshold=0.
     print("评估完成!")
     print("=" * 80)
 
-    print(f"\n处理统计:")
+    print("\n处理统计:")
     print(f"  总图片数: {len(image_files)}")
     print(f"  成功检测: {processed_count}")
     print(f"  未检测到: {no_detection_count}")
@@ -199,7 +182,7 @@ def evaluate_model(model_path, val_images_dir, val_labels_dir, conf_threshold=0.
     print("关键点定位精度 (像素距离):")
     print("-" * 80)
 
-    for kp_name in keypoint_names + ['all']:
+    for kp_name in [*keypoint_names, "all"]:
         distances = stats[kp_name]
 
         if len(distances) == 0:
@@ -219,7 +202,7 @@ def evaluate_model(model_path, val_images_dir, val_labels_dir, conf_threshold=0.
         pck_20 = np.sum(distances <= 20) / len(distances) * 100
         pck_50 = np.sum(distances <= 50) / len(distances) * 100
 
-        display_name = "整体" if kp_name == 'all' else kp_name
+        display_name = "整体" if kp_name == "all" else kp_name
 
         print(f"\n{display_name}:")
         print(f"  样本数量: {len(distances)}")
@@ -240,36 +223,33 @@ def evaluate_model(model_path, val_images_dir, val_labels_dir, conf_threshold=0.
 
 
 def plot_distance_distribution(stats, keypoint_names):
-    """
-    绘制距离分布图
-    """
+    """绘制距离分布图."""
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-    fig.suptitle('AS-OCT Scleral Spur Keypoint Localization Error Distribution',
-                 fontsize=14, fontweight='bold')
+    fig.suptitle("AS-OCT Scleral Spur Keypoint Localization Error Distribution", fontsize=14, fontweight="bold")
 
     # 1. 整体距离分布直方图
     ax1 = axes[0, 0]
-    all_distances = np.array(stats['all'])
-    ax1.hist(all_distances, bins=50, color='steelblue', alpha=0.7, edgecolor='black')
-    ax1.axvline(np.mean(all_distances), color='red', linestyle='--',
-                label=f'Mean: {np.mean(all_distances):.2f}px')
-    ax1.axvline(np.median(all_distances), color='green', linestyle='--',
-                label=f'Median: {np.median(all_distances):.2f}px')
-    ax1.set_xlabel('Pixel Distance (px)')
-    ax1.set_ylabel('Frequency')
-    ax1.set_title('Overall Distance Distribution')
+    all_distances = np.array(stats["all"])
+    ax1.hist(all_distances, bins=50, color="steelblue", alpha=0.7, edgecolor="black")
+    ax1.axvline(np.mean(all_distances), color="red", linestyle="--", label=f"Mean: {np.mean(all_distances):.2f}px")
+    ax1.axvline(
+        np.median(all_distances), color="green", linestyle="--", label=f"Median: {np.median(all_distances):.2f}px"
+    )
+    ax1.set_xlabel("Pixel Distance (px)")
+    ax1.set_ylabel("Frequency")
+    ax1.set_title("Overall Distance Distribution")
     ax1.legend()
     ax1.grid(True, alpha=0.3)
 
     # 2. 左右关键点对比箱线图
     ax2 = axes[0, 1]
     data_to_plot = [stats[kp] for kp in keypoint_names if len(stats[kp]) > 0]
-    labels = [kp.replace('_', ' ').title() for kp in keypoint_names if len(stats[kp]) > 0]
+    labels = [kp.replace("_", " ").title() for kp in keypoint_names if len(stats[kp]) > 0]
     bp = ax2.boxplot(data_to_plot, labels=labels, patch_artist=True)
-    for patch in bp['boxes']:
-        patch.set_facecolor('lightblue')
-    ax2.set_ylabel('Pixel Distance (px)')
-    ax2.set_title('Left vs Right Scleral Spur')
+    for patch in bp["boxes"]:
+        patch.set_facecolor("lightblue")
+    ax2.set_ylabel("Pixel Distance (px)")
+    ax2.set_title("Left vs Right Scleral Spur")
     ax2.grid(True, alpha=0.3)
 
     # 3. PCK曲线
@@ -283,12 +263,12 @@ def plot_distance_distribution(stats, keypoint_names):
         distances = np.array(stats[kp_name])
         pck_values = [np.sum(distances <= t) / len(distances) * 100 for t in thresholds]
 
-        label = kp_name.replace('_', ' ').title()
-        ax3.plot(thresholds, pck_values, marker='o', markersize=2, label=label)
+        label = kp_name.replace("_", " ").title()
+        ax3.plot(thresholds, pck_values, marker="o", markersize=2, label=label)
 
-    ax3.set_xlabel('Distance Threshold (px)')
-    ax3.set_ylabel('PCK (%)')
-    ax3.set_title('PCK Curve (Percentage of Correct Keypoints)')
+    ax3.set_xlabel("Distance Threshold (px)")
+    ax3.set_ylabel("PCK (%)")
+    ax3.set_title("PCK Curve (Percentage of Correct Keypoints)")
     ax3.legend()
     ax3.grid(True, alpha=0.3)
     ax3.set_xlim([0, 100])
@@ -296,19 +276,19 @@ def plot_distance_distribution(stats, keypoint_names):
 
     # 4. 累积分布函数 (CDF)
     ax4 = axes[1, 1]
-    for kp_name in keypoint_names + ['all']:
+    for kp_name in [*keypoint_names, "all"]:
         if len(stats[kp_name]) == 0:
             continue
 
         distances = np.array(sorted(stats[kp_name]))
         cdf = np.arange(1, len(distances) + 1) / len(distances) * 100
 
-        label = "Overall" if kp_name == 'all' else kp_name.replace('_', ' ').title()
+        label = "Overall" if kp_name == "all" else kp_name.replace("_", " ").title()
         ax4.plot(distances, cdf, label=label, linewidth=2)
 
-    ax4.set_xlabel('Pixel Distance (px)')
-    ax4.set_ylabel('Cumulative Percentage (%)')
-    ax4.set_title('Cumulative Distribution Function (CDF)')
+    ax4.set_xlabel("Pixel Distance (px)")
+    ax4.set_ylabel("Cumulative Percentage (%)")
+    ax4.set_title("Cumulative Distribution Function (CDF)")
     ax4.legend()
     ax4.grid(True, alpha=0.3)
     ax4.set_xlim([0, 100])
@@ -316,8 +296,8 @@ def plot_distance_distribution(stats, keypoint_names):
     plt.tight_layout()
 
     # 保存图表
-    save_path = 'runs/pose/evaluation_results.png'
-    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    save_path = "runs/pose/evaluation_results.png"
+    plt.savefig(save_path, dpi=300, bbox_inches="tight")
     print(f"  图表保存至: {save_path}")
 
     plt.close()
@@ -325,9 +305,9 @@ def plot_distance_distribution(stats, keypoint_names):
 
 def main():
     # 配置
-    model_path = 'runs/pose/asoct_yolo11x/weights/best.pt'
-    val_images_dir = 'datasets/ASOCT_YOLO/images/val'
-    val_labels_dir = 'datasets/ASOCT_YOLO/labels/val'
+    model_path = "runs/pose/asoct_yolo11x/weights/best.pt"
+    val_images_dir = "datasets/ASOCT_YOLO/images/val"
+    val_labels_dir = "datasets/ASOCT_YOLO/labels/val"
     conf_threshold = 0.25  # 置信度阈值
 
     # 检查路径
@@ -347,11 +327,11 @@ def main():
         return
 
     # 执行评估
-    stats = evaluate_model(
+    evaluate_model(
         model_path=model_path,
         val_images_dir=val_images_dir,
         val_labels_dir=val_labels_dir,
-        conf_threshold=conf_threshold
+        conf_threshold=conf_threshold,
     )
 
     print("\n" + "=" * 80)
@@ -370,5 +350,5 @@ def main():
     print("  可用: MPD < 20px, PCK@50px > 85%")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
