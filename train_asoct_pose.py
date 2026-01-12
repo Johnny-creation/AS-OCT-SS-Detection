@@ -26,8 +26,11 @@ def load_dataset_info(yaml_path):
     # 统计各类别数量（从文件名前缀识别）
     class_counts = Counter()
     for img in train_images + val_images:
-        # 文件名格式: normal_1.jpg, cataract_327.jpg
-        prefix = img.stem.split('_')[0]
+        # 文件名格式: normal_1.jpg, cataract_327.jpg, glaucoma_cataract_1000.jpg
+        # 需要识别复合类别名（如 glaucoma_cataract）
+        stem = img.stem
+        # 从文件名中提取类别（最后一个下划线之前的部分）
+        prefix = stem.rsplit('_', 1)[0]  # 从右侧分割，保留复合类别名
         class_counts[prefix] += 1
 
     return {

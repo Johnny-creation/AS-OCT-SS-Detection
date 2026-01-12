@@ -20,7 +20,7 @@ import numpy as np
 CATEGORIES = ['Normal', 'Cataract', 'Glaucoma', 'Glaucoma_Cataract']
 SOURCE_BASE = "datasets"
 OUTPUT_DIR = "datasets/ASOCT_YOLO"
-TRAIN_RATIO = 0.8  # 80% 训练集, 20% 验证集
+TRAIN_RATIO = 0.85  # 85% 训练集, 15% 验证集
 
 # 定义类别（四个独立类别）
 CLASSES = ["normal", "cataract", "glaucoma", "glaucoma_cataract"]
